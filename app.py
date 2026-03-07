@@ -29,9 +29,7 @@ VALID_INGREDIENTS = {
     "apple", "banana", "orange", "strawberry", "blueberry", "grape",
     "tomato", "cucumber", "lettuce", "carrot", "onion", "garlic",
     "pepper", "potato", "broccoli", "spinach", "mushroom",
-
     "chicken", "beef", "pork", "salmon", "fish", "egg", "turkey",
-
     "bread", "cheese", "milk", "butter", "yogurt",
     "rice", "pasta"
 }
