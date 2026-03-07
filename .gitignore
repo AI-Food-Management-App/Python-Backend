@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .env
 .env.*
 
@@ -20,3 +21,8 @@ env/
 # OS files
 .DS_Store
 Thumbs.db
+=======
+*.env
+*.venu
+
+>>>>>>> 270a89eaeea15dc88a7d881986b6b25ab766b426
