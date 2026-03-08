@@ -1,0 +1,12 @@
+requirements.txt
+fastapi
+uvicorn[standard]
+python-multipart
+pillow
+torch
+torchvision
+requests
+python-dotenv
+app.py 
+from fastapi import FastAPI, File, UploadFile
+from PIL import Image
