@@ -7,6 +7,3 @@ torch
 torchvision
 requests
 python-dotenv
-app.py 
-from fastapi import FastAPI, File, UploadFile
-from PIL import Image
