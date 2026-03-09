@@ -125,6 +125,7 @@ def call_google_vision(image_bytes):
             }
         ]
     }
+    
 
     resp = requests.post(VISION_URL, json=payload)
     resp.raise_for_status()
