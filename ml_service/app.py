@@ -1,6 +1,6 @@
-"""FoodVision ML Service - FastAPI application for food detection."""
 import base64
 import os
+import re
 import requests
 from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile, File
@@ -110,7 +110,7 @@ SKIP_WORDS = {
 
 
 def call_google_vision(image_bytes):
-   
+    """Call Google Vision API to detect labels, objects, and text in image."""
     img_base64 = base64.b64encode(image_bytes).decode("utf-8")
 
     payload = {
@@ -125,16 +125,15 @@ def call_google_vision(image_bytes):
             }
         ]
     }
-    
 
-    resp = requests.post(VISION_URL, json=payload)
+    resp = requests.post(VISION_URL, json=payload, timeout=10)
     resp.raise_for_status()
 
     response_data = resp.json()["responses"][0]
 
-    labels  = response_data.get("labelAnnotations",        [])
+    labels = response_data.get("labelAnnotations",        [])
     objects = response_data.get("localizedObjectAnnotations", [])
-    texts   = response_data.get("textAnnotations",         [])
+    texts = response_data.get("textAnnotations",         [])
 
     return labels, objects, texts
 
@@ -160,6 +159,7 @@ def extract_from_labels(labels: list) -> str | None:
 
 
 def extract_from_objects(objects: list) -> str | None:
+    """Extract ingredient from localized objects, highest confidence first."""
     for obj in objects:
         score = obj.get("score", 0)
         if score < 0.6:
@@ -171,7 +171,7 @@ def extract_from_objects(objects: list) -> str | None:
 
 
 def extract_from_text(texts: list) -> str | None:
-  
+    """Extract ingredient from OCR text in image."""
     if not texts:
         return None
 
@@ -200,7 +200,7 @@ def extract_from_text(texts: list) -> str | None:
 
 
 def extract_best_food_label(labels, objects, texts) -> str | None:
-
+    """Extract best food label using priority: objects > text > labels > fallback."""
     # 1. Try objects first — most precise
     result = extract_from_objects(objects)
     if result:
@@ -227,18 +227,21 @@ def extract_best_food_label(labels, objects, texts) -> str | None:
 
 @app.post("/detect")
 async def detect_food(image: UploadFile = File(...)):
+    """Detect food ingredient from uploaded image using Google Vision API."""
     try:
         image_bytes = await image.read()
         labels, objects, texts = call_google_vision(image_bytes)
 
         # Debug log — helpful during development
-        print("Labels:",  [(l["description"], round(l.get("score",0), 2)) for l in labels])
-        print("Objects:", [(o["name"],        round(o.get("score",0), 2)) for o in objects])
+        print("Labels:",  [(l["description"], round(
+            l.get("score", 0), 2)) for l in labels])
+        print("Objects:", [(o["name"],        round(
+            o.get("score", 0), 2)) for o in objects])
         print("Text:", texts[0]["description"][:100] if texts else "none")
 
         ingredient = extract_best_food_label(labels, objects, texts)
         return JSONResponse({"ingredient": ingredient})
 
-    except Exception as e:
+    except (requests.RequestException, ValueError, KeyError) as e:
         print("detect_food error:", str(e))
         return JSONResponse(status_code=500, content={"error": str(e)})
