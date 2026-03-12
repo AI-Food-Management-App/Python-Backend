@@ -1,13 +1,20 @@
+"""
+FastAPI service for detecting food ingredients from images
+using Google Vision API.
+"""
 import base64
 import os
 import re
+from pathlib import Path
 import requests
+
 from dotenv import load_dotenv
+
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-load_dotenv()
+load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
 GOOGLE_VISION_API_KEY = os.getenv("GOOGLE_VISION_API_KEY")
 if not GOOGLE_VISION_API_KEY:
@@ -15,9 +22,12 @@ if not GOOGLE_VISION_API_KEY:
 
 app = FastAPI(title="FoodVision Service")
 
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:4200").split(",")
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
